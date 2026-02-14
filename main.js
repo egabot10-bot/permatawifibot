@@ -26,20 +26,7 @@ const adminId = String(process.env.ADMIN_ID);
 const userState = {};
 
 const permatabot = new PermataBot(token, options, adminId);
-// permatabot.init();
 permatabot.getStart();
-// (async () => {
-//     const generateSafeVoucher = require('./services/generateSafeVoucher');
-//     const pendingOrder = require('./data/pendingOrder');
-
-//     const voucher = await generateSafeVoucher({
-//         length: 4,
-//         pendingOrder
-//     });
-
-//     console.log('🎟 Voucher hasil generate:', voucher);
-// })();
-
 
 midtransWebhook({
     app,
@@ -55,4 +42,3 @@ midtransWebhook({
 app.listen(3001, () => {
     console.log('🚀 Midtrans Webhook hidup, bot siap jualan');
 });
-
