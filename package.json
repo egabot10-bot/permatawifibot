@@ -1,0 +1,20 @@
+{
+  "name": "permatabot",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "bot": "nodemon main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^17.2.4",
+    "express": "^5.2.1",
+    "midtrans-client": "^1.4.3",
+    "node-routeros": "^1.6.8",
+    "node-telegram-bot-api": "^0.67.0",
+    "qrcode": "^1.5.4"
+  }
+}
