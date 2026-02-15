@@ -6,11 +6,11 @@
     "type":"default/default",
     "total" : "default"
 },
-  "1. PermataWifi-Gold": {
+  "PermataWifi-Gold": {
     "subnet": "172.16.0.0/24",
     "speed": "100M/100M",
-    "pcq-up":"pcq-upload-default",
-    "pcq-down":"pcq-download-default",
+    "type":"pcq-upload-default/pcq-download-default",
+    "total":"default",
     "pools": [
       { "name": "RG1", "ranges": "172.16.0.2-172.16.0.14", "network": "172.16.0.0/28", "speed": "15M/20M", "limit": "5M/5M" },
       { "name": "RG2", "ranges": "172.16.0.17-172.16.0.30", "network": "172.16.0.16/28", "speed": "15M/20M", "limit": "5M/5M" },
@@ -18,22 +18,22 @@
     ]
   },
 
-  "2. PermataWifi-Silver": {
+  "PermataWifi-Silver": {
     "subnet": "172.16.1.0/24",
    "speed": "100M/100M",
-    "pcq-up":"pcq-upload-default",
-    "pcq-down":"pcq-download-default",
+    "type":"pcq-upload-default/pcq-download-default",
+    "total":"default",
     "pools": [
       { "name": "RS1", "ranges": "172.16.1.1-172.16.1.14", "network": "172.16.1.0/28" },
       { "name": "RS2", "ranges": "172.16.1.17-172.16.1.30", "network": "172.16.1.16/28" }
     ]
   },
 
-  "3. PermataWifi-Bronze": {
+  "PermataWifi-Bronze": {
     "subnet": "172.16.2.0/24,172.16.3.0/24",
    "speed": "100M/100M",
-    "pcq-up":"pcq-upload-default",
-    "pcq-down":"pcq-download-default",
+    "type":"pcq-upload-default/pcq-download-default",
+    "total":"default",
     "pools": [
       { "name": "RB1",  "ranges": "172.16.2.1-172.16.2.14",   "network": "172.16.2.0/28" },
       { "name": "RB2",  "ranges": "172.16.2.17-172.16.2.30", "network": "172.16.2.16/28" },
@@ -70,11 +70,11 @@
     ]
   },
 
-  "4. PermataNet-Single": {
+  "PermataWifi-Single": {
     "subnet": "172.16.6.0/23",
-    "pcq-up":"pcq-upload-default",
-    "pcq-down":"pcq-download-default",
-    "Speed": "100M/100M",
+    "speed":"40M/40M",
+    "type":"pcq-upload-default/pcq-download-default",
+    "total":"default",
     "pools": [
       { "name": "Single", "ranges": "172.16.6.2-172.16.7.254", "network": "172.16.6.0/23" }
     ]

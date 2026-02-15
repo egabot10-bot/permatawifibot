@@ -39,6 +39,6 @@ midtransWebhook({
 // app/get('/', (req, res) => {
 //     res.send('Midtrans Webhook is alive!');
 // });
-app.listen(3001, () => {
+app.listen(80, () => {
     console.log('🚀 Midtrans Webhook hidup, bot siap jualan');
 });

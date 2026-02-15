@@ -255,70 +255,57 @@ async function infrastrukturHotspot({
 
         ////========================= Queue =========================////
         const existGloblalQueue = await conn.write('/queue/simple/print', [
-            `?name=${name}-Global`
+        `?name=${name}-Global`
         ]);
+        const globalName = `${name}-Global`;
+
         if (existGloblalQueue.length === 0) {
-            try{
+            try {
+
+                // 1️⃣ Global parent
                 await conn.write('/queue/simple/add', [
-                    `=name=${name}-Global`,
-                    `=target=${poolConfig['PermataWifi-Global'].subnet}`,
-                    `=max-limit=${poolConfig['PermataWifi-Global'].speed}`,
-                    `=queue=${poolConfig['PermataWifi-Global'].type}`,
-                    `=total-queue=${poolConfig['PermataWifi-Global'].total}`,
+                    `=name=${globalName}`,
+                    `=target=${poolConfig[`${globalName}`].subnet}`,
+                    `=max-limit=${poolConfig[`${globalName}`].speed}`,
+                    `=queue=${poolConfig[`${globalName}`].type}`,
+                    `=total-queue=${poolConfig[`${globalName}`].total}`,
                     `=comment=Global-Limit`
                 ]);
-            }catch(err){
+
+                console.log('✅ Global Queue created');
+            } catch (err) {
                 console.error('❌ Queue Creation Error:', err.message);
             }
-            console.log('✅ Global Queue created');
         }
 
-    //     const existingQueues = await conn.write('/queue/simple/print');
-    //     const existingQueueNames = new Set(existingQueues.map(q => q.name));
+        // 2️⃣ Child queues
+        const tiers = [
+            { key: 'Gold',   order: 1 },
+            { key: 'Silver', order: 2 },
+            { key: 'Bronze', order: 3 },
+            { key: 'Single', order: 4 }
+        ];
 
-    //     for (const [tier, data] of Object.entries(poolConfig)) {
-    //         console.log(`🚀 Setup Queue for ${tier.toUpperCase()}`);
-    //         for (const pool of data.pools) {
-    //             const queueName = `Q-${pool.name}`;
-
-    //             if (existingQueueNames.has(queueName)) {
-    //                 console.log(`⏭ SKIP Queue ${queueName} (sudah ada)`);
-    //                 continue;
-    //             }
-                
-    //             await conn.write('/queue/simple/add', [
-    //                 `=name=${queueName}`,
-    //                 `=target=${pool.network}`
-    //             ]);
-
-    //             console.log(`✅ Queue ${queueName} dibuat`);
-    //         }
-    // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // const pcqglobal = await conn.write('/queue/type/print', [
-        //     `?name=pcq-global`
-        // ]);
-        // if(pcqglobal.length === 0){
-        //     await conn.write('/queue/type/add', [
-        //         `=name=pcq-global`,
-        //         `=kind=pcq`,
-        //         `=pcq-classifier=dst-address,src-address`]);
-        //     console.log('✅ PCQ Global created');
-        // }
-
+        for (const { key, order } of tiers) {
+            const queueName = `${order}. ${name}-${key}`;
+            const cfg = poolConfig[`${name}-${key}`];
+            const existQueue = await conn.write('/queue/simple/print', [
+                `?name=${queueName}`
+            ]);
+            if (existQueue.length > 0) {
+                console.log(`⏭️ ${queueName} already exists, skip`);
+                continue;
+            }
+            await conn.write('/queue/simple/add', [
+                `=name=${queueName}`,
+                `=target=${cfg.subnet}`,
+                `=max-limit=${cfg.speed}`,
+                `=queue=${cfg.type}`,
+                `=total-queue=${cfg.total}`,
+                `=comment=${name}-${key}`,
+                `=parent=${globalName}`
+            ]);
+        }
 
      
     console.log('✅ Infrastruktur Hotspot setup completed');
