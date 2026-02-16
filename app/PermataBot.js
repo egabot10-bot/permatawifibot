@@ -12,13 +12,51 @@ class PermataBot extends TelegramBot {
     constructor(token, options, adminId){
         super(token, options);
         this.adminId = adminId;
+        this.lastMessage = {};
+
         this.on('message', (msg) => {
+            if(userState[msg.chat.id]?.step === "WAITING_VOUCHER"){
+            console.log(`waiting voucher`)
+           }
            const isInCommand = Object.values(commands).some((commands) => commands.test(msg.text));
            if(!isInCommand){
                this.sendMessage(msg.chat.id, "Perintah tidak dikenal. Silakan gunakan perintah yang tersedia.");
                this.mainMenu(msg.chat.id);
            }
-        });
+        //    if(userState[msg.chat.id]?.step === "WAITING_VOUCHER"){
+        //     console.log(`waiting voucher`)
+        //    }
+        
+    });
+        this.onText(/kode(.+)/, (data, after) => {
+        const chatId = data.chat.id;
+        const clearCode = after[1].replace(/\s+/g, '');
+
+        // init state kalau belum ada
+        if (!userState[chatId]) {
+            userState[chatId] = {
+                tryCheck: 0,
+                timeout: null
+            };
+        }
+
+        userState[chatId].tryCheck++;
+
+        if (userState[chatId].tryCheck > 5) {
+            this.sendMessage(chatId, '❌ Kuota Cek Habis Hanya 5x dalam 1 jam, coba lagi 1 jam kedepan ⏳');
+            return;
+        }
+
+        // set auto reset (cooldown)
+        if (!userState[chatId].timeout) {
+            userState[chatId].timeout = setTimeout(() => {
+                delete userState[chatId];
+            }, 3_600_000); // 1 menit
+        }
+
+        this.handleCekVoucher(chatId, clearCode);
+    });
+
         this.on('callback_query', (callbackQuery) => {
              if (userState[callbackQuery.message.chat.id]?.step === 'WAITING_PAYMENT') {
                     return this.answerCallbackQuery(callbackQuery.id, {
@@ -26,11 +64,16 @@ class PermataBot extends TelegramBot {
                         show_alert: true
                     });
                 }
-            console.log(`Executing callback query... by ${callbackQuery.from.username}`);
+            // if(userState[callbackQuery.message.chat.id]?.step ==='WAITING_VOUCHER'){
+            //     return this.answerCallbackQuery(callbackQuery.id,{
+            //         text:`Silahkan input voucher dulu`,
+            //         show_alert : true
+            //     })
+            // }
+            console.log(`Executing callback query... by ${callbackQuery.from.username} akses : ${callbackQuery.data}`);
             const data = callbackQuery.data;
             const msg = callbackQuery.message;
             switch (data) { 
-
             case 'MENU_ADMIN_PANEL':
                 //this.cekAdmin();
                 this.MainMenuAdmin(msg.chat.id);
@@ -51,13 +94,17 @@ class PermataBot extends TelegramBot {
                 this.handleInfrastructureHotspot(msg.chat.id);
                 break;
             // Client
-            
+            case 'CekVoucher' :
+                //this.handleCekVoucher(msg.chat.id);
+                userState[msg.chat.id] = {step:'WAITING_STATUS'};
+                this.sendMessage(msg.chat.id, `🎟️ Masukkan kode voucher kamu seperti contoh : \n\n/kode ( kode kamu ) || /kode 79SF`);
+                break;
             case 'MenuPaketInternet':
                 this.PilihPaketInternet(msg.chat.id);
                 break;
 
             case 'MENU_STATUS':
-                this.sendMessage(msg.chat.id, '📊 Status fitur ini segera hadir 🚧');
+                this.sendMessage(msg.chat.id, '📊 Status fitur ini segera 🚧');
                 break;
 
             case 'BACK_MAIN':
@@ -78,7 +125,9 @@ class PermataBot extends TelegramBot {
                 break;
         }
         });
+    //this.on('callback_query', this.handleCallback.bind(this));
     }
+
 
     getStart(){
         this.onText(commands.start, (msg) => {
@@ -89,7 +138,7 @@ class PermataBot extends TelegramBot {
     mainMenu(chatId){
         const keyboard = [
             [{ text: '🛒 Beli Paket Internet', callback_data: 'MenuPaketInternet' }],
-            [{ text: '📊 Cek Status', callback_data: 'MENU_STATUS' }],
+            [{ text: '📊 Cek Status Paket', callback_data: 'CekVoucher' }],
             [{ text: '☎️ Hubungi Admin', callback_data: 'MENU_CONTACT' }]
         ];
         if(chatId == this.adminId){
@@ -318,6 +367,50 @@ class PermataBot extends TelegramBot {
             this.sendMessage(chatId, '❌ Gagal setup Infrastruktur Hotspot. Coba lagi ya.');
         });
     }
+
+    async handleCekVoucher(chatId, kode) {
+    const cleanKode = (kode || '').trim();
+    console.log(`🎫 Handler cek voucher: "${cleanKode}"`);
+
+    const { cekPaket } = require('../services/mikrotik');
+
+    try {
+        const result = await cekPaket({ voucher: cleanKode });
+        
+        this.sendMessage(
+            chatId,
+            result.found
+                ? `✅ Voucher valid!\n\n${
+                    result.text
+                        ? `Sisa waktu voucher kamu:\n⏳ ${result.text}\nTanggal kadaluarsa pada : \n${result.expireAt}\n`
+                        : result.message
+                }\n\n🎫 Kode: ${result.data}`
+                : `❌ Voucher tidak ditemukan`,
+                {
+                    parse_mode : 'Markdown',
+                    reply_markup:{
+                    inline_keyboard:[[
+                        { text: '⬅️ Kembali', callback_data: 'BACK_MAIN' }
+                    ]]
+                    }
+                }
+        );
+
+
+
+    } catch (err) {
+        console.error('🔥 Error handleCekVoucher:', err);
+
+        this.sendMessage(
+            chatId,
+            '⚠️ Terjadi kesalahan saat cek voucher, coba lagi ya.'
+        );
+    }
+}
+
+clearRecentChat(chatId){
+this.removeAllListeners()
+}
 
 }
 

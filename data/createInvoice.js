@@ -1,9 +1,10 @@
 const midtransClient = require('midtrans-client');
 const pendingOrder = require('../data/pendingOrder');
+require('dotenv').config()
 
 const snap = new midtransClient.Snap({
     isProduction: false,
-    serverKey: "SB-Mid-server-VjhgOq7uolnQ8cXKdeJ8AMsu",
+    serverKey: process.env.SERVER_KEY,
 });
 
 async function createInvoice(chatId, order) {
