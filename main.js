@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 
 
-const { pendingOrder } = require('./payment');
+const { pendingOrder } = require('./data/pendingOrder');
 const { get } = require('http');
 // ==============================
 // CONFIG

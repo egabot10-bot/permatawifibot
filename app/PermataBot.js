@@ -6,16 +6,16 @@ const createInvoice = require('../data/createInvoice');
 const { uptime } = require('process');
 const { text } = require('stream/consumers');
 const DB_FILE = path.join(__dirname, '../services/voucher.json');
-const userState = {};
 
 class PermataBot extends TelegramBot {
     constructor(token, options, adminId){
         super(token, options);
         this.adminId = adminId;
         this.lastMessage = {};
-
+        this.userState= {};
+        this.monitorExpiredVouchers();
         this.on('message', (msg) => {
-            if(userState[msg.chat.id]?.step === "WAITING_VOUCHER"){
+            if(this.userState[msg.chat.id]?.step === "WAITING_VOUCHER"){
             console.log(`waiting voucher`)
            }
            const isInCommand = Object.values(commands).some((commands) => commands.test(msg.text));
@@ -23,7 +23,7 @@ class PermataBot extends TelegramBot {
                this.sendMessage(msg.chat.id, "Perintah tidak dikenal. Silakan gunakan perintah yang tersedia.");
                this.mainMenu(msg.chat.id);
            }
-        //    if(userState[msg.chat.id]?.step === "WAITING_VOUCHER"){
+        //    if(this.userState[msg.chat.id]?.step === "WAITING_VOUCHER"){
         //     console.log(`waiting voucher`)
         //    }
         
@@ -33,24 +33,24 @@ class PermataBot extends TelegramBot {
         const clearCode = after[1].replace(/\s+/g, '');
 
         // init state kalau belum ada
-        if (!userState[chatId]) {
-            userState[chatId] = {
+        if (!this.userState[chatId]) {
+            this.userState[chatId] = {
                 tryCheck: 0,
                 timeout: null
             };
         }
 
-        userState[chatId].tryCheck++;
+        this.userState[chatId].tryCheck++;
 
-        if (userState[chatId].tryCheck > 5) {
+        if (this.userState[chatId].tryCheck > 5) {
             this.sendMessage(chatId, '❌ Kuota Cek Habis Hanya 5x dalam 1 jam, coba lagi 1 jam kedepan ⏳');
             return;
         }
 
         // set auto reset (cooldown)
-        if (!userState[chatId].timeout) {
-            userState[chatId].timeout = setTimeout(() => {
-                delete userState[chatId];
+        if (!this.userState[chatId].timeout) {
+            this.userState[chatId].timeout = setTimeout(() => {
+                delete this.userState[chatId];
             }, 3_600_000); // 1 menit
         }
 
@@ -58,13 +58,13 @@ class PermataBot extends TelegramBot {
     });
 
         this.on('callback_query', (callbackQuery) => {
-             if (userState[callbackQuery.message.chat.id]?.step === 'WAITING_PAYMENT') {
+             if (this.userState[callbackQuery.message.chat.id]?.step === 'WAITING_PAYMENT') {
                     return this.answerCallbackQuery(callbackQuery.id, {
                         text: '⚠️ Selesaikan pembayaran dulu ya 🙂',
                         show_alert: true
                     });
                 }
-            // if(userState[callbackQuery.message.chat.id]?.step ==='WAITING_VOUCHER'){
+            // if(this.userState[callbackQuery.message.chat.id]?.step ==='WAITING_VOUCHER'){
             //     return this.answerCallbackQuery(callbackQuery.id,{
             //         text:`Silahkan input voucher dulu`,
             //         show_alert : true
@@ -96,7 +96,7 @@ class PermataBot extends TelegramBot {
             // Client
             case 'CekVoucher' :
                 //this.handleCekVoucher(msg.chat.id);
-                userState[msg.chat.id] = {step:'WAITING_STATUS'};
+                this.userState[msg.chat.id] = {step:'WAITING_STATUS'};
                 this.sendMessage(msg.chat.id, `🎟️ Masukkan kode voucher kamu seperti contoh : \n\n/kode ( kode kamu ) || /kode 79SF`);
                 break;
             case 'MenuPaketInternet':
@@ -128,7 +128,7 @@ class PermataBot extends TelegramBot {
     //this.on('callback_query', this.handleCallback.bind(this));
     }
 
-
+    // Next ip firewall mangle add chain=postrouting action=change-ttl new-ttl=set:1 out-interface=PermataWifiBridg
     getStart(){
         this.onText(commands.start, (msg) => {
             this.mainMenu(msg.chat.id);
@@ -205,7 +205,7 @@ class PermataBot extends TelegramBot {
     }
 
     MenuSingle(chatId){
-        userState[chatId] = { step: 'CHOOSING_DURATION' };
+        this.userState[chatId] = { step: 'CHOOSING_DURATION' };
             this.sendMessage(
                 chatId,
                 `📱 *Paket Single Device*\n\n` +
@@ -246,7 +246,7 @@ class PermataBot extends TelegramBot {
 
     async handleSingle(chatId, packageType) {
 
-    userState[chatId] = { step: 'WAITING_PAYMENT' };
+    this.userState[chatId] = { step: 'WAITING_PAYMENT' };
 
     const SINGLE_MAP = {
         SINGLE_1D: { username: chatId.username,profile: 'Single', uptime: '1d', label: '1 Hari', price: 5000 },
@@ -258,7 +258,7 @@ class PermataBot extends TelegramBot {
     const pkg = SINGLE_MAP[packageType];
 
     if (!pkg) {
-        delete userState[chatId];
+        delete this.userState[chatId];
         return this.sendMessage(chatId, '❌ Paket tidak valid.');
     }
 
@@ -284,7 +284,7 @@ class PermataBot extends TelegramBot {
         );
     } catch (err) {
         console.error(err);
-        delete userState[chatId];
+        delete this.userState[chatId];
         this.sendMessage(chatId, '❌ Gagal membuat invoice, coba lagi ya.');
     }
 
@@ -408,9 +408,20 @@ class PermataBot extends TelegramBot {
     }
 }
 
-clearRecentChat(chatId){
-this.removeAllListeners()
+monitorExpiredVouchers() {
+    console.log('🕒 Voucher monitor aktif (1 menit sekali)');
+
+    setInterval(async () => {
+        try {
+            const { monitorExpire } = require('../services/mikrotik');
+            await monitorExpire();
+        } catch (err) {
+            console.error('MONITOR ERROR:', err.message);
+        }
+    }, 600_000);
 }
+
+
 
 }
 

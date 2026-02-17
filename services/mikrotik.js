@@ -75,6 +75,7 @@ async function addUserToMikrotik({
         console.error('MIKROTIK ERROR:', err.message);
         throw err;
     }finally{
+        console.log('tutup koneksi')
         await conn.close();
     }
 
@@ -421,6 +422,16 @@ async function cekPaket({ voucher = '' }) {
             }
         }
         const expireDate = new Date(cleanDateStr);
+        const expireAtIndo = new Intl.DateTimeFormat('id-ID', {
+            weekday: 'long',
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZone: 'Asia/Jakarta'
+        }).format(expireDate);
 
         if (isNaN(expireDate)) {
             return {
@@ -446,7 +457,7 @@ async function cekPaket({ voucher = '' }) {
             data: cleanVoucher,
             profile: user.profile || '-',
             uptime: user.uptime || '0s',
-            expireAt: expireDate,
+            expireAt: expireAtIndo,
             text: remaining.text
         };
 
@@ -492,6 +503,89 @@ function msToRemainingTime(ms) {
     };
 }
 
+async function monitorExpire() {
+    const conn = new RouterOSAPI({
+        host: String(process.env.MIKROTIK_HOST),
+        user: String(process.env.MIKROTIK_USER),
+        password: String(process.env.MIKROTIK_PASSWORD || ''),
+        port: parseInt(process.env.MIKROTIK_PORT) || 8728,
+        timeout: 5000
+    });
+
+    try {
+        await conn.connect();
+        console.log('TESTED FROM Monitor')
+        const users = await conn.write('/ip/hotspot/user/print');
+        const now = Date.now();
+
+        for (const user of users) {
+            const comment = user.comment.replace(/\sX$/, '').trim();
+
+            // 🎯 hanya voucher
+            // if (!comment.startsWith('vc-')) continue;
+            if (comment.includes('inactive')) continue;
+
+            // contoh:
+            // vc-79SF feb/17/2026 20:12:51
+            const parts = comment.split(' ');
+            const dateStr = parts.slice(-2).join(' ');
+            const expireAt = mikrotikDateToTimestamp(dateStr);
+            if (!expireAt) continue;
+            console.log(`comment : ${comment} || fix : ${expireAt}s`)
+
+            if (now >= expireAt) {
+                console.log(`⛔ EXPIRED: ${user.name} ${user['.id']}` );
+
+                const activeList = await conn.write('/ip/hotspot/active/print');
+
+                for (const active of activeList) {
+                    if (user.name === active.user) {
+                        console.log(`🔥 ACTIVE MATCH: ${active.user} id : ${active['.id']}`);
+                            await conn.write('/ip/hotspot/active/remove', [
+                                `=numbers=${active['.id']}`
+                            ]);
+                    }
+                }
+
+                await conn.write('/ip/hotspot/user/remove', [
+                    `=numbers=${user['.id']}`
+                ]);
+
+            }
+        }
+
+    } catch (err) {
+        console.error('MIKROTIK MONITOR ERROR:', err.message);
+    } finally {
+        conn.close();
+    }
+}
 
 
-module.exports = { addUserToMikrotik, setupMikrotikInternetDHCP, infrastrukturHotspot, cekPaket };
+
+function mikrotikDateToTimestamp(mikrotikDate) {
+    // feb/17/2026 20:12:51
+    const [datePart, timePart] = mikrotikDate.split(' ');
+    if (!datePart || !timePart) return null;
+
+    const [mon, day, year] = datePart.split('/');
+
+    const monthMap = {
+        jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+        jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11
+    };
+
+    if (!(mon in monthMap)) return null;
+
+    return new Date(
+        Number(year),
+        monthMap[mon.toLowerCase()],
+        Number(day),
+        ...timePart.split(':').map(Number)
+    ).getTime();
+}
+
+
+
+
+module.exports = { addUserToMikrotik, setupMikrotikInternetDHCP, infrastrukturHotspot, cekPaket, monitorExpire };

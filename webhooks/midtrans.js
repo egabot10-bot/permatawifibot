@@ -1,4 +1,4 @@
-module.exports = function ({ app, permatabot, generateSafeVoucher }) {
+module.exports = function ({ app, permatabot, generateSafeVoucher, sendStatus }) {
 
     const pendingOrder = require('../data/pendingOrder');
 
@@ -20,7 +20,7 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
                 length: 4
             });
 
-            // 📡 push ke mikrotik
+            //📡 push ke mikrotik
             const {addUserToMikrotik} = require('../services/mikrotik');
             await addUserToMikrotik({
                 username: voucher,
@@ -30,7 +30,7 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
                 service: 'hotspot'
             });
 
-            // 💾 simpan ke voucher.json
+            //💾 simpan ke voucher.json
             const saveToJson = require('../services/storage');
             saveToJson({
                 voucher,
@@ -66,15 +66,22 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
                 `⚡ Speed: *5 Mbps*`,
                 { parse_mode: 'Markdown' }
             );
+            if (permatabot.userState?.[order.chatId]) {
+                console.log('STATE BEFORE:', permatabot.userState[order.chatId]);
+
+                permatabot.userState[order.chatId].step = null;
+
+                console.log('STATE AFTER:', permatabot.userState[order.chatId]);
+            }
 
             delete pendingOrder[order_id]; // 🧹 cleanup
-
             res.sendStatus(200);
 
         } catch (err) {
             console.error('MIDTRANS WEBHOOK ERROR:', err);
             res.sendStatus(200);
         }
+
     });
     app.get('/', (req, res) => {
         res.send('PermataBot is running');
