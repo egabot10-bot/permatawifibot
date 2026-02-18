@@ -468,6 +468,7 @@ async function cekPaket({ voucher = '' }) {
         console.log('🔌 Koneksi Mikrotik ditutup');
     }
 }
+
 function msToRemainingTime(ms) {
     if (ms <= 0) {
         return {
@@ -554,8 +555,6 @@ async function monitorExpire() {
     }
 }
 
-
-
 function mikrotikDateToTimestamp(mikrotikDate) {
     // feb/17/2026 20:12:51
     const [datePart, timePart] = mikrotikDate.split(' ');
@@ -578,7 +577,66 @@ function mikrotikDateToTimestamp(mikrotikDate) {
     ).getTime();
 }
 
+async function ProfileKosong(packageType) {
+    const conn = new RouterOSAPI({
+        host: String(process.env.MIKROTIK_HOST),
+        user: String(process.env.MIKROTIK_USER),
+        password: String(process.env.MIKROTIK_PASSWORD || ''),
+        port: parseInt(process.env.MIKROTIK_PORT) || 8728,
+        timeout: 5000
+    });
+    const PREFIX_MAP = {
+        GOLD: 'RG',
+        SILVER: 'RS',
+        BRONZE: 'RB'
+    };
+
+    try {
+        await conn.connect();
+
+        // 1️⃣ Ambil semua profile
+        const profiles = await conn.write('/ip/hotspot/user/profile/print');
+        // 2️⃣ Ambil semua user hotspot
+        const users = await conn.write('/ip/hotspot/user/print');
+
+        const prefix = PREFIX_MAP[packageType];
+        if (!prefix) throw new Error('Paket tidak dikenal');
+
+        // 3️⃣ Filter profile sesuai prefix (RB / RG / RS)
+        const paketProfiles = profiles
+            .map(p => p.name)
+            .filter(name => name.startsWith(prefix));
+
+        // 4️⃣ Hitung jumlah user per profile
+        const usageMap = {};
+        paketProfiles.forEach(p => usageMap[p] = 0);
+
+        users.forEach(u => {
+            if (usageMap[u.profile] !== undefined) {
+                usageMap[u.profile]++;
+            }
+        });
+
+        // 5️⃣ Cari profile dengan user paling sedikit
+        const sorted = Object.entries(usageMap)
+            .sort((a, b) => a[1] - b[1]);
+
+        const [selectedProfile, totalUser] = sorted[0] || [];
+
+        return {
+            name: selectedProfile || 'unprofile',
+            totalUser: totalUser ?? 0,
+            prefix
+        };
+
+    } catch (err) {
+        console.error('❌ ProfileKosong error:', err.message);
+        return { name: 'unprofile', totalUser: 0, error: true };
+    } finally {
+        await conn.close();
+    }
+}
 
 
 
-module.exports = { addUserToMikrotik, setupMikrotikInternetDHCP, infrastrukturHotspot, cekPaket, monitorExpire };
+module.exports = { addUserToMikrotik, setupMikrotikInternetDHCP, infrastrukturHotspot, cekPaket, monitorExpire, ProfileKosong };

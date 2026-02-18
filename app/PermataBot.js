@@ -114,7 +114,15 @@ class PermataBot extends TelegramBot {
             case 'BACK_PAKET':
                 this.PilihPaketInternet(msg.chat.id);
                 break;
-
+            case 'GOLD':
+                this.handleRumah(msg, 'GOLD');
+                break;
+            case 'SILVER':
+                this.handleRumah(msg, 'SILVER');
+                break;
+            case 'BRONZE':
+                this.handleRumah(msg, 'BRONZE');
+                break;
             case 'Single':
                 this.MenuSingle(msg.chat.id);
                 break;
@@ -200,11 +208,11 @@ class PermataBot extends TelegramBot {
                     reply_markup: {
                         inline_keyboard: [
                             [
-                                { text: '🏆  Gold', callback_data: 'Rumah_Gold' },
-                                { text: '🥈  Silver', callback_data: 'Rumah_Silver' }
+                                { text: '🏆  Gold', callback_data: 'GOLD' },
+                                { text: '🥈  Silver', callback_data: 'SILVER' }
                             ],
                             [
-                                { text: '🥉  Bronze', callback_data: 'Rumah_Bronze' },
+                                { text: '🥉  Bronze', callback_data: 'BRONZE' },
                                 { text: '📱 1 Device', callback_data: 'Single' }
                             ],
                             [
@@ -250,9 +258,64 @@ class PermataBot extends TelegramBot {
     }
 
 
+    async handleRumah(msg, packageType) {
+    const chatId = msg.chat.id;
+    const uname = msg.chat.username;
+    // this.userState[chatId] = { step: 'WAITING_PAYMENT' };
+    const { ProfileKosong } = require('../services/mikrotik');
 
-    handleRumahGold(chatId){
+    const RumahMap = {
+        GOLD   : { username : uname,name:'Rumah Gold 14 Device',   uptime:'30d',label:'30 Hari',price : 125000, actualSpeed:"20 Mbps" },
+        SILVER : { username : uname,name:'Rumah Silver 14 Device', uptime:'30d',label:'30 Hari',price : 100000, actualSpeed:"15 Mbps"  },
+        BRONZE : {username : uname, name:'Rumah Bronze 14 Device', uptime:'30d',label: '30 Hari', price : 80000, actualSpeed:"10 Mbps"  }
+    };
 
+    const paket = RumahMap[packageType];
+    if (!paket) {
+        return this.sendMessage(chatId, '❌ Paket tidak valid');
+    }
+
+    const readyProfile = await ProfileKosong(packageType);
+    // this.sendMessage(
+    //     chatId,
+    //     `🏠 Paket: ${pkg.name}\n` +
+    //     `📡 Profile: ${profile.name}\n` +
+    //     `👥 Jumlah user: ${profile.totalUser}\n`+
+    //     `Yang Di cari : ${packageType}` 
+    // );
+    const pkg = {
+    ...paket,
+    profile: readyProfile.name
+    };
+    try {
+        const { orderId, redirectUrl } = await createInvoice(chatId, pkg);
+
+        this.sendMessage(
+            chatId,
+            `💳 *Pembayaran Paket ${pkg.name}*\n\n` +
+            `📦 Paket: *${pkg.label}*\n` +
+            `🧾 Invoice: *${orderId}*\n` +
+            `💰 Harga: *Rp ${pkg.price.toLocaleString('id-ID')}*\n\n` +
+            `Klik tombol di bawah untuk lanjut pembayaran 👇`,
+            {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '💰 Bayar Sekarang', url: redirectUrl }],
+                        [{ text: '⬅️ Kembali', callback_data: 'BACK_PAKET' }]
+                    ]
+                }
+            }
+        );
+    } catch (err) {
+        console.error(err);
+        delete this.userState[chatId];
+        this.sendMessage(chatId, '❌ Gagal membuat invoice, coba lagi ya.');
+    }
+
+    // next step:
+    // - create hotspot user
+    // - set profile = profile.name
     }
 
 
