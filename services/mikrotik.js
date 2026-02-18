@@ -14,15 +14,8 @@ async function addUserToMikrotik({
         port: parseInt(process.env.MIKROTIK_PORT) || 8728,
         timeout: 5000
     });
-    console.log(username, password, profile, uptime, service);
-    console.log('Connecting to Mikrotik... Use :'+process.env.MIKROTIK_HOST+', user: '+process.env.MIKROTIK_USER+', port: '+process.env.MIKROTIK_PORT);
-    // try{
-    //     await conn.connect();
-    // }catch(err){
-    //     console.error('Mikrotik connection error:', err.message);
-    //     throw err;
-    // }
-    // return;
+    // console.log(username, password, profile, uptime, service);
+    // console.log('Connecting to Mikrotik... Use :'+process.env.MIKROTIK_HOST+', user: '+process.env.MIKROTIK_USER+', port: '+process.env.MIKROTIK_PORT);
     try {
         await conn.connect();
         // 🔍 cek user existing

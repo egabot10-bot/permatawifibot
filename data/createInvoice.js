@@ -18,6 +18,7 @@ async function createInvoice(chatId, order) {
         uptime: order.uptime,
         label: order.label,
         price: order.price,
+        speed : order.actualSpeed,
         createdAt: new Date().toISOString()
     };
 

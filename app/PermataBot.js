@@ -123,6 +123,18 @@ class PermataBot extends TelegramBot {
                 this.sendMessage(msg.chat.id, 'Anda memilih Paket Single Device untuk 1 Hari.');
                 this.handleSingle(msg.chat.id, 'SINGLE_1D');
                 break;
+            case 'SINGLE_3D':
+                this.sendMessage(msg.chat.id, 'Anda memilih Paket Single Device untuk 3 Hari.');
+                this.handleSingle(msg.chat.id, 'SINGLE_3D');
+                break;
+            case 'SINGLE_7D':
+                this.sendMessage(msg.chat.id, 'Anda memilih Paket Single Device untuk 7 Hari.');
+                this.handleSingle(msg.chat.id, 'SINGLE_1D');
+                break;
+            case 'SINGLE_3D':
+                this.sendMessage(msg.chat.id, 'Anda memilih Paket Single Device untuk 30 Hari.');
+                this.handleSingle(msg.chat.id, 'SINGLE_1D');
+                break;
         }
         });
     //this.on('callback_query', this.handleCallback.bind(this));
@@ -249,10 +261,10 @@ class PermataBot extends TelegramBot {
     this.userState[chatId] = { step: 'WAITING_PAYMENT' };
 
     const SINGLE_MAP = {
-        SINGLE_1D: { username: chatId.username,profile: 'Single', uptime: '1d', label: '1 Hari', price: 5000 },
-        SINGLE_3D: { username: chatId.username,profile: 'Single', uptime: '3d', label: '3 Hari', price: 10000 },
-        SINGLE_7D: { username: chatId.username,profile: 'Single', uptime: '7d', label: '7 Hari', price: 25000 },
-        SINGLE_30D:{ username: chatId.username,profile: 'Single', uptime: '30d',label: '30 Hari',price: 40000 },
+        SINGLE_1D: { username: chatId.username, profile: 'Single', uptime: '1d', label: '1 Hari', price: 5000, actualSpeed : "5 Mbps" },
+        SINGLE_3D: { username: chatId.username, profile: 'Single3D', uptime: '3d', label: '3 Hari', price: 10000, actualSpeed : "5 Mbps" },
+        SINGLE_7D: { username: chatId.username, profile: 'Single7D', uptime: '7d', label: '7 Hari', price: 25000, actualSpeed : "5 Mbps"  },
+        SINGLE_30D:{ username: chatId.username, profile: 'Single30D', uptime: '30d',label: '30 Hari',price: 40000, actualSpeed : "5 Mbps" },
     };
 
     const pkg = SINGLE_MAP[packageType];
