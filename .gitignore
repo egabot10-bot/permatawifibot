@@ -1,6 +1,7 @@
 # Node build / runtime (hosting)
 Node_*
 node_modules/
+voucher.json
 
 # Environment
 .env

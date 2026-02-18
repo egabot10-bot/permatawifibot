@@ -508,7 +508,7 @@ async function monitorExpire() {
 
     try {
         await conn.connect();
-        console.log('TESTED FROM Monitor')
+        console.log(`${process.env.PROGRAM_NAME} Expired Monitoring`)
         const users = await conn.write('/ip/hotspot/user/print');
         const now = Date.now();
 
@@ -525,7 +525,7 @@ async function monitorExpire() {
             const dateStr = parts.slice(-2).join(' ');
             const expireAt = mikrotikDateToTimestamp(dateStr);
             if (!expireAt) continue;
-            console.log(`comment : ${comment} || fix : ${expireAt}s`)
+            // console.log(`comment : ${comment} || fix : ${expireAt}s`)
 
             if (now >= expireAt) {
                 console.log(`⛔ EXPIRED: ${user.name} ${user['.id']}` );
