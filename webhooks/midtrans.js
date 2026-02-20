@@ -16,7 +16,7 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
 
             // 🔐 generate voucher (safe)
             const voucher = await generateSafeVoucher({
-                length: 6
+                length: 5
             });
 
             
