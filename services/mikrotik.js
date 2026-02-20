@@ -279,89 +279,111 @@ async function infrastrukturHotspot({
             { key: 'Bronze', order: 3 },
             { key: 'Single', order: 4 }
         ];
-        // for (const { key, order } of tiers) {
-        //     const queueName = `${order}. ${name}-${key}`;
-        //     const cfg = poolConfig[`${name}-${key}`];
-        //     const existQueue = await conn.write('/queue/simple/print', [
-        //         `?name=${queueName}`
-        //     ]);
-        //     if (existQueue.length > 0) {
-        //         console.log(`⏭️ ${queueName} already exists, skip`);
-        //         continue;
-        //     }
-        //     await conn.write('/queue/simple/add', [
-        //         `=name=${queueName}`,
-        //         `=target=${cfg.subnet}`,
-        //         `=max-limit=${cfg.speed}`,
-        //         `=queue=${cfg.type}`,
-        //         `=total-queue=${cfg.total}`,
-        //         `=comment=${name}-${key}`,
-        //         `=parent=${globalName}`
-        //     ]);
-        // }
-    for (const { key, order } of tiers) {
-    const tierKey = `${name}-${key}`;
-    const cfg = poolConfig[tierKey];
-    if (!cfg) continue;
+        for (const { key, order } of tiers) {
+        const tierKey = `${name}-${key}`;
+        const cfg = poolConfig[tierKey];
+        if (!cfg) continue;
 
-    const parentQueueName = `${order}. ${tierKey}`;
+        const parentQueueName = `${order}. ${tierKey}`;
 
-    // =========================
-    // CHILD KE-2 (TIER)
-    // =========================
-    const existParent = await conn.write('/queue/simple/print', [
-        `?name=${parentQueueName}`
-    ]);
-
-    if (existParent.length === 0) {
-        await conn.write('/queue/simple/add', [
-            `=name=${parentQueueName}`,
-            `=target=${cfg.subnet}`,
-            `=max-limit=${cfg.speed}`,
-            `=queue=${cfg.type}`,
-            `=total-queue=${cfg.total}`,
-            `=comment=${tierKey}`,
-            `=parent=${globalName}`
+        // =========================
+        // CHILD KE-2 (TIER)
+        // =========================
+        const existParent = await conn.write('/queue/simple/print', [
+            `?name=${parentQueueName}`
         ]);
 
-        console.log(`✅ Created ${parentQueueName}`);
-    } else {
-        console.log(`⏭️ ${parentQueueName} exists`);
+        if (existParent.length === 0) {
+            await conn.write('/queue/simple/add', [
+                `=name=${parentQueueName}`,
+                `=target=${cfg.subnet}`,
+                `=max-limit=${cfg.speed}`,
+                `=queue=${cfg.type}`,
+                `=total-queue=${cfg.total}`,
+                `=comment=${tierKey}`,
+                `=parent=${globalName}`
+            ]);
+
+            console.log(`✅ Created ${parentQueueName}`);
+        } else {
+            console.log(`⏭️ ${parentQueueName} exists`);
+        }
+
+        // =========================
+        // CHILD KE-3 (POOLS)
+        // =========================
+        if (!cfg.pools || !Array.isArray(cfg.pools)) continue;
+
+        for (let i = 0; i < cfg.pools.length; i++) {
+            if(parentQueueName.toLocaleLowerCase().includes('single')) continue;
+            const pool = cfg.pools[i];
+            const poolQueueName = `${order}.${i + 1} ${tierKey}-${pool.name}`;
+            console.log(`Pool Queue name : ${poolQueueName}`)
+            const existPool = await conn.write('/queue/simple/print', [
+                `?name=${pool.name}`
+            ]);
+
+            if (existPool.length > 0) {
+                console.log(`⏭️ ${poolQueueName} already exists`);
+                continue;
+            }
+
+            await conn.write('/queue/simple/add', [
+                `=name=${pool.name}`,
+                `=target=${pool.network}`,
+                `=max-limit=${pool.speed}`,
+                `=limit-at=${pool.limit}`,
+                `=queue=${pool.type}`,
+                `=total-queue=${pool.total}`,
+                //`=comment=${tierKey}-${pool.name}`,
+                `=parent=${parentQueueName}`
+            ]);
+
+            console.log(`🔥 Created ${poolQueueName}`);
+            }
+        }
+    // PROFILE
+    const pools = await conn.write('/ip/pool/print');
+
+    // 2️⃣ Ambil pool RBx / RGx / RSx
+    const filteredPools = pools
+        .map(p => p.name)
+        .filter(name => /^(RB|RG|RS)\d+$/.test(name));
+
+    console.log('📦 Pool kandidat:', filteredPools);
+
+    if (filteredPools.length === 0) {
+        console.log('⚠️ Tidak ada pool RB/RG/RS ditemukan');
+        return;
     }
 
-    // =========================
-    // CHILD KE-3 (POOLS)
-    // =========================
-    if (!cfg.pools || !Array.isArray(cfg.pools)) continue;
-
-    for (let i = 0; i < cfg.pools.length; i++) {
-        if(parentQueueName.toLocaleLowerCase().includes('single')) continue;
-        const pool = cfg.pools[i];
-        const poolQueueName = `${order}.${i + 1} ${tierKey}-${pool.name}`;
-        console.log(`Pool Queue name : ${poolQueueName}`)
-        const existPool = await conn.write('/queue/simple/print', [
-            `?name=${pool.name}`
-        ]);
-
-        if (existPool.length > 0) {
-            console.log(`⏭️ ${poolQueueName} already exists`);
+    // 3️⃣ Print semua hotspot user profile
+    const profiles = await conn.write('/ip/hotspot/user/profile/print');
+    const profileSet = new Set(profiles.map(p => p.name));
+    const onLoginScript = require('../libs/onLogin');
+    const safeOnLogin = sanitizeOnLogin(onLoginScript.onLogin30D)
+    // 4️⃣ Loop & create profile jika belum ada
+    for (const poolName of filteredPools) {
+        if (profileSet.has(poolName)) {
+            console.log(`⏭️ Profile ${poolName} sudah ada`);
             continue;
         }
 
-        await conn.write('/queue/simple/add', [
-            `=name=${pool.name}`,
-            `=target=${pool.network}`,
-            `=max-limit=${pool.speed}`,
-            `=limit-at=${pool.limit}`,
-            `=queue=${pool.type}`,
-            `=total-queue=${pool.total}`,
-            //`=comment=${tierKey}-${pool.name}`,
-            `=parent=${parentQueueName}`
-        ]);
+        try {
+            await conn.write('/ip/hotspot/user/profile/add', [
+                `=name=${poolName}`,
+                `=address-pool=${poolName}`,
+                `=on-login=${safeOnLogin}`,
+                `=shared-users=14`
+            ]);
 
-        console.log(`🔥 Created ${poolQueueName}`);
+            console.log(`🔥 Profile ${poolName} berhasil dibuat`);
+        } catch (err) {
+            console.error(`❌ Gagal create profile ${poolName}:`, err.message);
+        }
     }
-}
+
+    console.log('✅ Sync hotspot profile selesai');
      
     console.log('✅ Infrastruktur Hotspot setup completed');
     }catch(err){
@@ -763,6 +785,12 @@ async function ProfileKosong(packageType) {
     } finally {
         await conn.close();
     }
+}
+function sanitizeOnLogin(script) {
+    return script
+        .replace(/\n/g, ' ')   // hapus newline
+        .replace(/\s+/g, ' ')  // rapihin spasi
+        .trim();
 }
 
 module.exports = { addUserToMikrotik, setupMikrotikInternetDHCP, infrastrukturHotspot, cekPaket, monitorExpire, ProfileKosong };

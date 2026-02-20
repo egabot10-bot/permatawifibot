@@ -92,6 +92,7 @@ class PermataBot extends TelegramBot {
                 break;
             // Setup Hotspot
             case 'Setup_Hotspot':
+                this.sendMessage(msg.chat.id, 'Mohon tunggu sebentar, bot sedang konfigurasi...');
                 this.handleInfrastructureHotspot(msg.chat.id);
                 break;
             // Client
@@ -263,6 +264,7 @@ class PermataBot extends TelegramBot {
     const chatId = msg.chat.id;
     const uname = msg.chat.username;
     this.userState[chatId] = { step: 'WAITING_PAYMENT' };
+
     const { ProfileKosong } = require('../services/mikrotik');
 
     const RumahMap = {
