@@ -577,14 +577,142 @@ function mikrotikDateToTimestamp(mikrotikDate) {
     ).getTime();
 }
 
+// async function ProfileKosong(packageType) {
+//     const conn = new RouterOSAPI({
+//         host: String(process.env.MIKROTIK_HOST),
+//         user: String(process.env.MIKROTIK_USER),
+//         password: String(process.env.MIKROTIK_PASSWORD || ''),
+//         port: parseInt(process.env.MIKROTIK_PORT) || 8728,
+//         timeout: 5000
+//     });
+//     const PREFIX_MAP = {
+//         GOLD: 'RG',
+//         SILVER: 'RS',
+//         BRONZE: 'RB'
+//     };
+
+//     try {
+//         await conn.connect();
+
+//         // 1️⃣ Ambil semua profile
+//         const profiles = await conn.write('/ip/hotspot/user/profile/print');
+//         // 2️⃣ Ambil semua user hotspot
+//         const users = await conn.write('/ip/hotspot/user/print');
+
+//         const prefix = PREFIX_MAP[packageType];
+//         if (!prefix) throw new Error('Paket tidak dikenal');
+
+//         // 3️⃣ Filter profile sesuai prefix (RB / RG / RS)
+//         const paketProfiles = profiles
+//             .map(p => p.name)
+//             .filter(name => name.startsWith(prefix));
+
+//         // 4️⃣ Hitung jumlah user per profile
+//         const usageMap = {};
+//         paketProfiles.forEach(p => usageMap[p] = 0);
+
+//         users.forEach(u => {
+//             if (usageMap[u.profile] !== undefined) {
+//                 usageMap[u.profile]++;
+//             }
+//         });
+
+//         // 5️⃣ Cari profile dengan user paling sedikit
+//         const sorted = Object.entries(usageMap)
+//             .sort((a, b) => a[1] - b[1]);
+
+//         const [selectedProfile, totalUser] = sorted[0] || [];
+
+//         return {
+//             name: selectedProfile || 'unprofile',
+//             totalUser: totalUser ?? 0,
+//             prefix
+//         };
+
+//     } catch (err) {
+//         console.error('❌ ProfileKosong error:', err.message);
+//         return { name: 'unprofile', totalUser: 0, error: true };
+//     } finally {
+//         await conn.close();
+//     }
+// }
+
+// async function ProfileKosong(packageType) {
+//     const pendingOrder = require('../data/pendingOrder');
+//     const conn = new RouterOSAPI({
+//         host: String(process.env.MIKROTIK_HOST),
+//         user: String(process.env.MIKROTIK_USER),
+//         password: String(process.env.MIKROTIK_PASSWORD || ''),
+//         port: parseInt(process.env.MIKROTIK_PORT) || 8728,
+//         timeout: 5000
+//     });
+
+//     const PREFIX_MAP = {
+//         GOLD: 'RG',
+//         SILVER: 'RS',
+//         BRONZE: 'RB'
+//     };
+
+//     try {
+//         await conn.connect();
+
+//         // 1️⃣ Ambil semua profile
+//         const profiles = await conn.write('/ip/hotspot/user/profile/print');
+
+//         // 2️⃣ Ambil semua user hotspot
+//         const users = await conn.write('/ip/hotspot/user/print');
+
+//         const prefix = PREFIX_MAP[packageType];
+//         if (!prefix) throw new Error('Paket tidak dikenal');
+
+//         // 3️⃣ Kandidat profile (RG1, RG2, RG3)
+//         const kandidatProfiles = profiles
+//             .map(p => p.name)
+//             .filter(name => name.startsWith(prefix));
+
+//         // 4️⃣ Profile yang SUDAH dipakai user
+//         const usedProfiles = new Set(
+//             users
+//                 .map(u => u.profile)
+//                 .filter(p => p && p.startsWith(prefix))
+//         );
+
+//         // 5️⃣ Loop satu-satu: dipakai → skip, kosong → ambil
+//         for (const profile of kandidatProfiles) {
+//             if (!usedProfiles.has(profile)) {
+//                 return {
+//                     status: true,
+//                     name: profile
+//                 };
+//             }
+//         }
+
+//         // 6️⃣ Semua profile kepakai
+//         return {
+//             status: false,
+//             name: null
+//         };
+
+//     } catch (err) {
+//         console.error('❌ ProfileKosong error:', err.message);
+//         return {
+//             status: 'ERROR',
+//             name: null
+//         };
+//     } finally {
+//         await conn.close();
+//     }
+// }
 async function ProfileKosong(packageType) {
+    const pendingOrder = require('../data/pendingOrder');
     const conn = new RouterOSAPI({
-        host: String(process.env.MIKROTIK_HOST),
-        user: String(process.env.MIKROTIK_USER),
-        password: String(process.env.MIKROTIK_PASSWORD || ''),
+        host: process.env.MIKROTIK_HOST,
+        user: process.env.MIKROTIK_USER,
+        password: process.env.MIKROTIK_PASSWORD || '',
         port: parseInt(process.env.MIKROTIK_PORT) || 8728,
         timeout: 5000
     });
+
     const PREFIX_MAP = {
         GOLD: 'RG',
         SILVER: 'RS',
@@ -594,49 +722,47 @@ async function ProfileKosong(packageType) {
     try {
         await conn.connect();
 
-        // 1️⃣ Ambil semua profile
-        const profiles = await conn.write('/ip/hotspot/user/profile/print');
-        // 2️⃣ Ambil semua user hotspot
-        const users = await conn.write('/ip/hotspot/user/print');
-
         const prefix = PREFIX_MAP[packageType];
-        if (!prefix) throw new Error('Paket tidak dikenal');
+        if (!prefix) return { status: false, name: null };
 
-        // 3️⃣ Filter profile sesuai prefix (RB / RG / RS)
-        const paketProfiles = profiles
+        // ambil profile & user
+        const profiles = await conn.write('/ip/hotspot/user/profile/print');
+        const users    = await conn.write('/ip/hotspot/user/print');
+
+        const kandidatProfiles = profiles
             .map(p => p.name)
-            .filter(name => name.startsWith(prefix));
+            .filter(n => n.startsWith(prefix));
 
-        // 4️⃣ Hitung jumlah user per profile
-        const usageMap = {};
-        paketProfiles.forEach(p => usageMap[p] = 0);
+        for (const profile of kandidatProfiles) {
 
-        users.forEach(u => {
-            if (usageMap[u.profile] !== undefined) {
-                usageMap[u.profile]++;
-            }
-        });
+            // 1️⃣ cek dipakai user aktif di mikrotik
+            const dipakaiUser = users.some(
+                u => u.profile === profile
+            );
+            if (dipakaiUser) continue;
 
-        // 5️⃣ Cari profile dengan user paling sedikit
-        const sorted = Object.entries(usageMap)
-            .sort((a, b) => a[1] - b[1]);
+            // 2️⃣ cek lagi di pending order
+            const dipakaiPending = Object.values(pendingOrder).some(
+                o => o.profile === profile
+            );
+            if (dipakaiPending) continue;
 
-        const [selectedProfile, totalUser] = sorted[0] || [];
+            // ✅ lolos dua-duanya = AMAN
+            return {
+                status: true,
+                name: profile
+            };
+        }
 
-        return {
-            name: selectedProfile || 'unprofile',
-            totalUser: totalUser ?? 0,
-            prefix
-        };
+        // ❌ ga ada yg lolos
+        return { status: false, name: null };
 
     } catch (err) {
         console.error('❌ ProfileKosong error:', err.message);
-        return { name: 'unprofile', totalUser: 0, error: true };
+        return { status: false, name: null };
     } finally {
         await conn.close();
     }
 }
-
-
 
 module.exports = { addUserToMikrotik, setupMikrotikInternetDHCP, infrastrukturHotspot, cekPaket, monitorExpire, ProfileKosong };

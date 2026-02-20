@@ -1,7 +1,6 @@
-module.exports = function ({ app, permatabot, generateSafeVoucher, sendStatus }) {
+module.exports = function ({ app, permatabot, generateSafeVoucher }) {
 
     const pendingOrder = require('../data/pendingOrder');
-
     app.post('/midtrans/webhook', async (req, res) => {
         try {
             const { order_id, transaction_status } = req.body;
@@ -17,11 +16,17 @@ module.exports = function ({ app, permatabot, generateSafeVoucher, sendStatus })
 
             // 🔐 generate voucher (safe)
             const voucher = await generateSafeVoucher({
-                length: 4
+                length: 6
             });
 
+            
             //📡 push ke mikrotik
-            const {addUserToMikrotik} = require('../services/mikrotik');
+            const {addUserToMikrotik, ProfileKosong} = require('../services/mikrotik');
+            // const readyProfile = await ProfileKosong(order.profile);
+            // if(!readyProfile.status){
+
+            // }
+            //console.log(`from payment : ${readyProfile.name}`)
             await addUserToMikrotik({
                 username: voucher,
                 password: voucher,
@@ -43,10 +48,17 @@ module.exports = function ({ app, permatabot, generateSafeVoucher, sendStatus })
             await permatabot.sendMessage(
                 order.chatId,
                 `✅ *Pembayaran Berhasil!*\n\n` +
+                `---------------------------------\n`+
                 `🎟 Voucher: *${voucher}*\n` +
                 `📦 Paket: *${order.label}*\n` +
-                `⚡ Speed: *${order.speed}*`,
-                { parse_mode: 'Markdown' }
+                `⚡ Speed: *${order.speed}*\n`+
+                `---------------------------------`
+                ,
+                { parse_mode: 'Markdown',reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '⬅️ Kembali', callback_data: 'BACK_MAIN' }]
+                    ]
+                } }
             );
             if (permatabot.userState?.[order.chatId]) {
                 console.log('STATE BEFORE:', permatabot.userState[order.chatId]);

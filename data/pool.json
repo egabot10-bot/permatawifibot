@@ -12,9 +12,22 @@
     "type":"pcq-upload-default/pcq-download-default",
     "total":"default",
     "pools": [
-  { "name": "RG1", "ranges": "172.16.0.2-172.16.0.14", "network": "172.16.0.0/28",  "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
-  { "name": "RG2", "ranges": "172.16.0.17-172.16.0.30", "network": "172.16.0.16/28", "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
-  { "name": "RG3", "ranges": "172.16.0.33-172.16.0.46", "network": "172.16.0.32/28", "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" }
+  { "name": "RG1",  "ranges": "172.16.0.2-172.16.0.14",   "network": "172.16.0.0/28",   "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG2",  "ranges": "172.16.0.17-172.16.0.30",  "network": "172.16.0.16/28",  "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG3",  "ranges": "172.16.0.33-172.16.0.46",  "network": "172.16.0.32/28",  "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG4",  "ranges": "172.16.0.49-172.16.0.62",  "network": "172.16.0.48/28",  "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG5",  "ranges": "172.16.0.65-172.16.0.78",  "network": "172.16.0.64/28",  "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG6",  "ranges": "172.16.0.81-172.16.0.94",  "network": "172.16.0.80/28",  "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG7",  "ranges": "172.16.0.97-172.16.0.110", "network": "172.16.0.96/28",  "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG8",  "ranges": "172.16.0.113-172.16.0.126","network": "172.16.0.112/28", "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG9",  "ranges": "172.16.0.129-172.16.0.142","network": "172.16.0.128/28", "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG10", "ranges": "172.16.0.145-172.16.0.158","network": "172.16.0.144/28", "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG11", "ranges": "172.16.0.161-172.16.0.174","network": "172.16.0.160/28", "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG12", "ranges": "172.16.0.177-172.16.0.190","network": "172.16.0.176/28", "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG13", "ranges": "172.16.0.193-172.16.0.206","network": "172.16.0.192/28", "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG14", "ranges": "172.16.0.209-172.16.0.222","network": "172.16.0.208/28", "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG15", "ranges": "172.16.0.225-172.16.0.238","network": "172.16.0.224/28", "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RG16", "ranges": "172.16.0.241-172.16.0.254","network": "172.16.0.240/28", "speed": "15M/20M", "limit": "5M/5M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" }
     ]
   },
 
@@ -24,8 +37,22 @@
     "type":"pcq-upload-default/pcq-download-default",
     "total":"default",
     "pools": [
-    { "name": "RS1", "ranges": "172.16.1.1-172.16.1.14", "network": "172.16.1.0/28",  "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
-    { "name": "RS2", "ranges": "172.16.1.17-172.16.1.30","network": "172.16.1.16/28", "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" }
+      { "name": "RS1",  "ranges": "172.16.1.2-172.16.1.14",   "network": "172.16.1.0/28",   "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS2",  "ranges": "172.16.1.17-172.16.1.30",  "network": "172.16.1.16/28",  "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS3",  "ranges": "172.16.1.33-172.16.1.46",  "network": "172.16.1.32/28",  "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS4",  "ranges": "172.16.1.49-172.16.1.62",  "network": "172.16.1.48/28",  "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS5",  "ranges": "172.16.1.65-172.16.1.78",  "network": "172.16.1.64/28",  "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS6",  "ranges": "172.16.1.81-172.16.1.94",  "network": "172.16.1.80/28",  "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS7",  "ranges": "172.16.1.97-172.16.1.110", "network": "172.16.1.96/28",  "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS8",  "ranges": "172.16.1.113-172.16.1.126","network": "172.16.1.112/28", "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS9",  "ranges": "172.16.1.129-172.16.1.142","network": "172.16.1.128/28", "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS10", "ranges": "172.16.1.145-172.16.1.158","network": "172.16.1.144/28", "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS11", "ranges": "172.16.1.161-172.16.1.174","network": "172.16.1.160/28", "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS12", "ranges": "172.16.1.177-172.16.1.190","network": "172.16.1.176/28", "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS13", "ranges": "172.16.1.193-172.16.1.206","network": "172.16.1.192/28", "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS14", "ranges": "172.16.1.209-172.16.1.222","network": "172.16.1.208/28", "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS15", "ranges": "172.16.1.225-172.16.1.238","network": "172.16.1.224/28", "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+      { "name": "RS16", "ranges": "172.16.1.241-172.16.1.254","network": "172.16.1.240/28", "speed": "10M/15M", "limit": "3M/3M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" }
     ]
   },
 
@@ -35,7 +62,7 @@
     "type":"pcq-upload-default/pcq-download-default",
     "total":"default",
     "pools": [
-  { "name": "RB1",  "ranges": "172.16.2.1-172.16.2.14",   "network": "172.16.2.0/28",   "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RB1",  "ranges": "172.16.2.2-172.16.2.14",   "network": "172.16.2.0/28",   "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
   { "name": "RB2",  "ranges": "172.16.2.17-172.16.2.30",  "network": "172.16.2.16/28",  "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
   { "name": "RB3",  "ranges": "172.16.2.33-172.16.3.46",  "network": "172.16.2.32/28",  "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
   { "name": "RB4",  "ranges": "172.16.3.49-172.16.3.62",  "network": "172.16.3.48/28",  "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
@@ -51,7 +78,7 @@
   { "name": "RB14", "ranges": "172.16.3.209-172.16.3.222", "network": "172.16.3.208/28", "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
   { "name": "RB15", "ranges": "172.16.3.225-172.16.3.238", "network": "172.16.3.224/28", "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
   { "name": "RB16", "ranges": "172.16.3.241-172.16.3.254", "network": "172.16.3.240/28", "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
-  { "name": "RB17", "ranges": "172.16.3.1-172.16.3.14",   "network": "172.16.3.0/28",   "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
+  { "name": "RB17", "ranges": "172.16.3.2-172.16.3.14",   "network": "172.16.3.0/28",   "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
   { "name": "RB18", "ranges": "172.16.3.17-172.16.3.30", "network": "172.16.3.16/28",  "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
   { "name": "RB19", "ranges": "172.16.3.33-172.16.3.46", "network": "172.16.3.32/28",  "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },
   { "name": "RB20", "ranges": "172.16.3.49-172.16.3.62", "network": "172.16.3.48/28",  "speed": "5M/10M", "limit": "1M/1M", "type":"pcq-upload-default/pcq-download-default", "total":"default-small" },

@@ -34,7 +34,8 @@ midtransWebhook({
     pendingOrder,
     generateSafeVoucher: require('./services/generateSafeVoucher'),
     addUserToMikrotik: require('./services/mikrotik'),
-    saveToJson: require('./services/storage')
+    saveToJson: require('./services/storage'),
+    ProfileKosong: require('./services/mikrotik')
 });
 
 // app/get('/', (req, res) => {

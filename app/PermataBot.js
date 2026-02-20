@@ -5,6 +5,7 @@ const path = require('path');
 const createInvoice = require('../data/createInvoice');
 const { uptime } = require('process');
 const { text } = require('stream/consumers');
+const { profile } = require('console');
 const DB_FILE = path.join(__dirname, '../services/voucher.json');
 
 class PermataBot extends TelegramBot {
@@ -186,18 +187,18 @@ class PermataBot extends TelegramBot {
                 `🏠 *Rumahan (14 Device)* — *30 Hari*\n` +
                 `Cocok untuk keluarga / rame-rame\n\n` +
         
-                `🏆 *Gold*\n` +
+                `🏆 *Gold* • *Rp. 125.000*\n` +
                 `• Speed hingga *20 Mbps*\n` +
                 `• Maks *14 Device*\n` +
                 `• *Unlimited*\n\n` +
         
-                `🥈 *Silver*\n` +
-                `• Speed hingga *10 Mbps*\n` +
+                `🥈 *Silver* • *Rp. 100.000*\n` +
+                `• Speed hingga *15 Mbps*\n` +
                 `• Maks *14 Device*\n` +
                 `• *Unlimited*\n\n` +
         
-                `🥉 *Bronze*\n` +
-                `• Speed hingga *5 Mbps*\n` +
+                `🥉 *Bronze* • *Rp. 80.000*\n` +
+                `• Speed hingga *10 Mbps*\n` +
                 `• Maks *14 Device*\n` +
                 `• *Unlimited*\n\n` +
         
@@ -261,13 +262,13 @@ class PermataBot extends TelegramBot {
     async handleRumah(msg, packageType) {
     const chatId = msg.chat.id;
     const uname = msg.chat.username;
-    // this.userState[chatId] = { step: 'WAITING_PAYMENT' };
+    this.userState[chatId] = { step: 'WAITING_PAYMENT' };
     const { ProfileKosong } = require('../services/mikrotik');
 
     const RumahMap = {
         GOLD   : { username : uname,name:'Rumah Gold 14 Device',   uptime:'30d',label:'30 Hari',price : 125000, actualSpeed:"20 Mbps" },
         SILVER : { username : uname,name:'Rumah Silver 14 Device', uptime:'30d',label:'30 Hari',price : 100000, actualSpeed:"15 Mbps"  },
-        BRONZE : {username : uname, name:'Rumah Bronze 14 Device', uptime:'30d',label: '30 Hari', price : 80000, actualSpeed:"10 Mbps"  }
+        BRONZE : {  username : uname, name:'Rumah Bronze 14 Device', uptime:'30d',label: '30 Hari', price : 80000, actualSpeed:"10 Mbps"  }
     };
 
     const paket = RumahMap[packageType];
@@ -276,15 +277,23 @@ class PermataBot extends TelegramBot {
     }
 
     const readyProfile = await ProfileKosong(packageType);
-    // this.sendMessage(
-    //     chatId,
-    //     `🏠 Paket: ${pkg.name}\n` +
-    //     `📡 Profile: ${profile.name}\n` +
-    //     `👥 Jumlah user: ${profile.totalUser}\n`+
-    //     `Yang Di cari : ${packageType}` 
-    // );
+    if (!readyProfile.status) {
+    this.sendMessage(
+        chatId,
+        `🚫 Slot * ${packageType} * sudah penuh.\nSilakan pilih paket lain atau coba hubungi admin 🙏`
+    );
+    return this.mainMenu(chatId);
+    }
+    // // this.sendMessage(
+    // //     chatId,
+    // //     `🏠 Paket: ${pkg.name}\n` +
+    // //     `📡 Profile: ${profile.name}\n` +
+    // //     `👥 Jumlah user: ${profile.totalUser}\n`+
+    // //     `Yang Di cari : ${packageType}` 
+    // // );
     const pkg = {
     ...paket,
+    //profile: readyProfile.name
     profile: readyProfile.name
     };
     try {

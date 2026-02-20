@@ -9,8 +9,6 @@ const snap = new midtransClient.Snap({
 
 async function createInvoice(chatId, order) {
     const orderId = `INV-${Date.now()}`;
-
-
     pendingOrder[orderId] = {
         chatId,
         username: order.username || null,
