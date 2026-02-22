@@ -131,19 +131,19 @@ class PermataBot extends TelegramBot {
             
             case 'SINGLE_1D':
                 this.sendMessage(msg.chat.id, 'Anda memilih Paket Single Device untuk 1 Hari.');
-                this.handleSingle(msg.chat.id, 'SINGLE_1D');
+                this.handleSingle(msg, 'SINGLE_1D');
                 break;
             case 'SINGLE_3D':
                 this.sendMessage(msg.chat.id, 'Anda memilih Paket Single Device untuk 3 Hari.');
-                this.handleSingle(msg.chat.id, 'SINGLE_3D');
+                this.handleSingle(msg, 'SINGLE_3D');
                 break;
             case 'SINGLE_7D':
                 this.sendMessage(msg.chat.id, 'Anda memilih Paket Single Device untuk 7 Hari.');
-                this.handleSingle(msg.chat.id, 'SINGLE_1D');
+                this.handleSingle(msg, 'SINGLE_1D');
                 break;
             case 'SINGLE_3D':
                 this.sendMessage(msg.chat.id, 'Anda memilih Paket Single Device untuk 30 Hari.');
-                this.handleSingle(msg.chat.id, 'SINGLE_1D');
+                this.handleSingle(msg, 'SINGLE_1D');
                 break;
         }
         });
@@ -296,7 +296,8 @@ class PermataBot extends TelegramBot {
     const pkg = {
     ...paket,
     //profile: readyProfile.name
-    profile: readyProfile.name
+    profile: readyProfile.name,
+    admin : parseInt(this.adminId)
     };
     try {
         const { orderId, redirectUrl } = await createInvoice(chatId, pkg);
@@ -330,18 +331,24 @@ class PermataBot extends TelegramBot {
     }
 
 
-    async handleSingle(chatId, packageType) {
-
+    async handleSingle(msg, packageType) {
+    const chatId = msg.chat.id;
+    const usn = msg.chat.username;
     this.userState[chatId] = { step: 'WAITING_PAYMENT' };
 
     const SINGLE_MAP = {
-        SINGLE_1D: { username: chatId.username, profile: 'Single', uptime: '1d', label: '1 Hari', price: 5000, actualSpeed : "5 Mbps" },
-        SINGLE_3D: { username: chatId.username, profile: 'Single3D', uptime: '3d', label: '3 Hari', price: 10000, actualSpeed : "5 Mbps" },
-        SINGLE_7D: { username: chatId.username, profile: 'Single7D', uptime: '7d', label: '7 Hari', price: 25000, actualSpeed : "5 Mbps"  },
-        SINGLE_30D:{ username: chatId.username, profile: 'Single30D', uptime: '30d',label: '30 Hari',price: 40000, actualSpeed : "5 Mbps" },
+        SINGLE_1D: { name:'Paket 1 Hari Single',username: usn, profile: 'Single', uptime: '1d', label: '1 Hari', price: 5000, actualSpeed : "5 Mbps" },
+        SINGLE_3D: { name:'Paket 3 Hari Single',username: usn, profile: 'Single3D', uptime: '3d', label: '3 Hari', price: 10000, actualSpeed : "5 Mbps" },
+        SINGLE_7D: { name:'Paket 7 Hari Single',username: usn, profile: 'Single7D', uptime: '7d', label: '7 Hari', price: 25000, actualSpeed : "5 Mbps"  },
+        SINGLE_30D:{ name:'Paket 30 Hari Single',username: usn, profile: 'Single30D', uptime: '30d',label: '30 Hari',price: 40000, actualSpeed : "5 Mbps" },
     };
 
-    const pkg = SINGLE_MAP[packageType];
+    const unpkg = SINGLE_MAP[packageType];
+
+    const pkg ={
+        ...unpkg,
+        admin: parseInt(this.adminId)
+    }
 
     if (!pkg) {
         delete this.userState[chatId];

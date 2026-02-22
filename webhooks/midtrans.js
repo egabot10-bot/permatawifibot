@@ -27,6 +27,7 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
 
             // }
             //console.log(`from payment : ${readyProfile.name}`)
+
             await addUserToMikrotik({
                 username: voucher,
                 password: voucher,
@@ -60,6 +61,12 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
                     ]
                 } }
             );
+            await permatabot.sendMessage(
+                order.adminId,
+                `Pembelian dari ${order.username} telah berhasil\n\n`+
+                `Nominal Rp. ${order.price}\nProfile : ${order.name}\nkode voucher : ${voucher}`+
+                `\n\nPesan Sistem.`
+            )
             if (permatabot.userState?.[order.chatId]) {
                 console.log('STATE BEFORE:', permatabot.userState[order.chatId]);
 

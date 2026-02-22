@@ -11,6 +11,7 @@ async function createInvoice(chatId, order) {
     const orderId = `INV-${Date.now()}`;
     pendingOrder[orderId] = {
         chatId,
+        adminId: order.admin,
         username: order.username || null,
         profile: order.profile,
         uptime: order.uptime,
