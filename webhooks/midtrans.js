@@ -87,9 +87,9 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
     app.get('/', (req, res) => {
         res.send('PermataBot is running');
     });
-    app.get('/test/', (req,res)=>{
+    app.get('/ExpireMonitor/', (req,res)=>{
         data = {
-            type: 'System',
+            type: 'Systems',
             message: 'Hai'
         }
         res.send(data);
