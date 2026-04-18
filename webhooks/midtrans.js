@@ -1,6 +1,9 @@
+
 module.exports = function ({ app, permatabot, generateSafeVoucher }) {
 
     const pendingOrder = require('../data/pendingOrder');
+   
+
     app.post('/midtrans/webhook', async (req, res) => {
         try {
             const { order_id, transaction_status } = req.body;
@@ -84,15 +87,35 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
         }
 
     });
+
     app.get('/', (req, res) => {
         res.send('PermataBot is running');
     });
-    app.get('/ExpireMonitor/', (req,res)=>{
-        data = {
-            type: 'Systems',
-            message: 'Hai'
+
+    app.post('/ExpireMonitor', (req, res) => {
+    const { decryptData, encryptData } = require('../services/crypto');
+    try {
+        const decrypted = decryptData(req.body.data);
+        const payload = JSON.parse(decrypted);
+
+        const { hwid, ts } = payload;
+
+        // validasi contoh
+        if (hwid === "123456789") {
+            return res.json({
+                data: encryptData(JSON.stringify({ status: true }))
+            });
         }
-        res.send(data);
-    });  
+
+        return res.json({
+            data: encryptData(JSON.stringify({ status: false }))
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            data: encryptData(JSON.stringify({ status: false }))
+        });
+    }
+});  
 
 };
