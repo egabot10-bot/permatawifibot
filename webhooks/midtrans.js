@@ -150,6 +150,10 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
         console.error(err);
         res.json({ status: false });
     }
-}); 
+});
+app.post('/test',(req,res)=>{
+const {decryptData} = require('../services/crypto');
+return decryptData(req.body);
+}) 
 
 };
