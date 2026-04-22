@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-const SECRET_KEY = Buffer.from("egun-secret-key".padEnd(32));
+const SECRET_KEY = Buffer.from("egun-secret-keys".padEnd(32));
 
  function decryptData(base64) {
     const data = Buffer.from(base64, 'base64');
