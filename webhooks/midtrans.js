@@ -116,6 +116,37 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
             data: encryptData(JSON.stringify({ status: false }))
         });
     }
-});  
+    }); 
+    app.post('/verify', (req, res) => {
+    try {
+        const { data } = req.body;
+
+        if (!data) return res.json({ status: false });
+
+        const decrypted = decryptData(data);
+
+        const [hwid, timestamp] = decrypted.split('|');
+
+        console.log('HWID:', hwid);
+        console.log('Timestamp:', timestamp);
+
+        // contoh validasi simple
+        const now = Math.floor(Date.now() / 1000);
+
+        if (now - timestamp > 30) {
+            return res.json({ status: false, message: 'Expired' });
+        }
+
+        return res.json({
+            status: true,
+            hwid,
+            timestamp
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.json({ status: false });
+    }
+}); 
 
 };
