@@ -118,6 +118,7 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
     }
     }); 
     app.post('/verify', (req, res) => {
+    const { decryptData, encryptData } = require('../services/crypto');
     try {
         const { data } = req.body;
 
