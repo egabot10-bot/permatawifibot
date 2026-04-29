@@ -151,9 +151,32 @@ module.exports = function ({ app, permatabot, generateSafeVoucher }) {
         res.json({ status: false });
     }
 });
-app.post('/test',(req,res)=>{
-const {decryptData} = require('../services/crypto');
-return decryptData(req.body);
-}) 
+
+    app.post('/test', (req, res) => {
+    try {
+        const { decryptData } = require('../services/crypto');
+
+        const { data } = req.body; // ambil field data
+
+        if (!data) {
+            return res.json({ status: false, message: 'No data' });
+        }
+
+        const decrypted = decryptData(data);
+
+        const [hwid, timestamp] = decrypted.split('|');
+
+        return res.json({
+            status: true,
+            raw: decrypted,
+            hwid,
+            timestamp
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.json({ status: false, message: 'Decrypt error' });
+    }
+});
 
 };
