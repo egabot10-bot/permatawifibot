@@ -9,7 +9,7 @@ const { profile } = require('console');
 const DB_FILE = path.join(__dirname, '../services/voucher.json');
 
 class PermataBot extends TelegramBot {
-    constructor(token, options, adminId){
+    constructor(token, options, adminId){ 
         super(token, options);
         this.adminId = adminId;
         this.lastMessage = {};
@@ -29,6 +29,9 @@ class PermataBot extends TelegramBot {
         //    }
         
     });
+    this.onText(/getMe(.+)/,(data,after)=>{
+        return console.log(data.chat);
+    })
         this.onText(/kode(.+)/, (data, after) => {
         const chatId = data.chat.id;
         const clearCode = after[1].replace(/\s+/g, '');
@@ -56,7 +59,7 @@ class PermataBot extends TelegramBot {
         }
 
         this.handleCekVoucher(chatId, clearCode);
-    });
+        });
 
         this.on('callback_query', (callbackQuery) => {
              if (this.userState[callbackQuery.message.chat.id]?.step === 'WAITING_PAYMENT') {
@@ -75,11 +78,43 @@ class PermataBot extends TelegramBot {
             const data = callbackQuery.data;
             const msg = callbackQuery.message;
             switch (data) { 
+            case 'Gen_Sin_1D':
+                this.GenerateVoucher(msg, 'SINGLE_1D');
+                break;
+            case 'Gen_Sin_3D':
+                this.GenerateVoucher(msg, 'SINGLE_3D');
+                break;
+            case 'Gen_Sin_7D':
+                this.GenerateVoucher(msg, 'SINGLE_7D');
+                break;
+            case 'Gen_Sin_30D':
+                this.GenerateVoucher(msg, 'SINGLE_30D');
+                break;
+            case 'Gen_Bronze_Home':
+                this.GenerateRumahan(msg, 'BRONZE');
+                break;
+            case 'Gen_Silver_Home':
+                this.GenerateRumahan(msg, 'SILVER');
+                break;
+            case 'Gen_Gold_Home':
+                this.GenerateRumahan(msg, 'GOLD');
+                break;
+            
             case 'MENU_ADMIN_PANEL':
-                //this.cekAdmin();
                 this.MainMenuAdmin(msg.chat.id);
                 break;
-                
+            case 'Menu_Hotspot':
+                this.handleHotspotMenu(msg.chat.id);
+                break;
+            case 'MenuGenerateHotspot':
+                this.handleMenuGenerateHotspot(msg.chat.id);
+                break;
+            case 'Generate_Single':
+                this.genSingle(msg.chat.id);
+                break;
+            case 'Generate_Paket':
+                this.genRumahan(msg.chat.id);
+                break;
             case 'Setup_Internet':
                 this.setupMikrotikInternet(msg.chat.id);
                 break;
@@ -383,13 +418,13 @@ class PermataBot extends TelegramBot {
 
     //Admin Panel
     }
-
-    MainMenuAdmin(chatId){
+     MainMenuAdmin(chatId){
         const keyboard = [
             //[{text: 'Setup Mikrotik', callback_data: 'Setup_Mikrotik' }],
             [{ text: 'Internet Setup', callback_data: 'Setup_Internet' }],
             [{ text: 'Install Infrastruktur Hotspot', callback_data: 'Setup_Hotspot' }],
             [{ text: 'Install Infrastruktur PPPoE', callback_data: 'Setup_PPPoE' }],
+            [{ text: 'Hotspot Menu', callback_data: 'Menu_Hotspot' }],
             [{text: '⬅️ Kembali', callback_data: 'BACK_MAIN' }]
         ];
         const message = `Admin Panel\n\n` +
@@ -404,7 +439,6 @@ class PermataBot extends TelegramBot {
             }
         });
     }
-
     setupMikrotikInternet(chatId){
         this.sendMessage(
                 chatId,
@@ -441,7 +475,6 @@ class PermataBot extends TelegramBot {
             this.sendMessage(chatId, '❌ Gagal setup Mikrotik ke DHCP. Coba lagi ya.');
         });
     }
-
     handleMikrotikPPPoEClient(chatId){
         this.sendMessage(chatId, 'Fitur ini segera hadir 🚧');
     }
@@ -459,6 +492,204 @@ class PermataBot extends TelegramBot {
             console.error('Error setting up Mikrotik Infrastruktur Hotspot:', err);
             this.sendMessage(chatId, '❌ Gagal setup Infrastruktur Hotspot. Coba lagi ya.');
         });
+    }
+
+    handleHotspotMenu(chatId){
+        const keyboard = [
+            [{ text: '👥 Generate Voucher', callback_data: 'MenuGenerateHotspot' }],
+            [{ text: '⚙️ Profil Setting', callback_data: 'MenuProfileUser' }],
+            [{ text: '⬅️ Kembali', callback_data: 'MENU_ADMIN_PANEL' }]
+        ];
+        const message = `🛜 Hotspot Settings List \n\n` +
+        `• Generate User Hotspot\n` +
+        `• Add / Remove / Edit Paket`;
+
+        this.sendMessage(chatId, message, {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: keyboard
+            }
+        });
+    }
+
+    handleMenuGenerateHotspot(chatId){
+    const keyboard = [
+            //[{text: 'Setup Mikrotik', callback_data: 'Setup_Mikrotik' }],
+            [{ text: '👤', callback_data: 'Generate_Single' },{ text: '🏠', callback_data: 'Generate_Paket' }],
+            [{ text: '⬅️ Kembali', callback_data: 'Menu_Hotspot' }]
+        ];
+        const message = `🎟 Generate Voucher Hotspot \n\n` +
+        `• Single • Paket Rumahan\n` +
+        ``;
+
+        this.sendMessage(chatId, message, {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: keyboard
+            }
+        });
+    }
+
+    genSingle(chatId){
+    const keyboard = [
+            //[{text: 'Setup Mikrotik', callback_data: 'Setup_Mikrotik' }],
+            [{ text: '1D', callback_data: 'Gen_Sin_1D' },{ text: '3D', callback_data: 'Gen_Sin_3D' }],
+            [{ text: '7D', callback_data: 'Gen_Sin_7D' },{ text: '30D', callback_data: 'Gen_Sin_30D' }],
+            [{text: '⬅️ Kembali', callback_data: 'MenuGenerateHotspot' }]
+        ];
+        const message = `Pilih Durasi Harian\n\n` +
+        `• 1 Hari • 3 Hari \n` +
+        `• 7 Hari • 30 Hari `;
+
+        this.sendMessage(chatId, message, {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: keyboard
+            }
+        });
+    }
+
+    genRumahan(chatId){
+        const keyboard = [
+            //[{text: 'Setup Mikrotik', callback_data: 'Setup_Mikrotik' }],
+            [{ text: '🥉 Bronze', callback_data: 'Gen_Bronze_Home' },{ text: '🥈 Silver', callback_data: 'Gen_Silver_Home' }],
+            [{ text: '🏆 Gold', callback_data: 'Gen_Gold_Home' },{ text: '👑 Platinum', callback_data: 'MENU_STATUS' }],
+            [{text: '⬅️ Kembali', callback_data: 'MenuGenerateHotspot' }]
+        ];
+        const message = `Pilih Paket Rumahan ( 30 Hari )\n\n` +
+        `• Bronze 10 Mbps Rp. 80.000 \n• Silver 15Mbps Rp. 100.000\n` +
+        `• Gold 20 Mbps Rp. 125.000 \n• Platinum 25Mbps Rp. 150.000\n`+
+        `\nMaks Device : 14`;
+
+        this.sendMessage(chatId, message, {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: keyboard
+            }
+        });
+    }
+
+    async GenerateVoucher(msg, packageType){
+
+    const {addUserToMikrotik} = require('../services/mikrotik');
+    const generateSafeVoucher = require('../services/generateSafeVoucher');
+    const saveToJson = require('../services/storage');
+    const chatId = msg.chat.id;
+    if(chatId != this.adminId){
+        return this.sendMessage(chatId,`❌ Invalid Command Administrator Only`);
+    }
+    const usn = msg.chat.username;
+    // this.userState[chatId] = { step: 'WAITING_PAYMENT' };
+
+    const SINGLE_MAP = {
+        SINGLE_1D: { name:'Paket 1 Hari Single',username: usn, profile: 'Single', uptime: '1d', label: '1 Hari', price: 5000, actualSpeed : "5 Mbps", maks:1 },
+        SINGLE_3D: { name:'Paket 3 Hari Single',username: usn, profile: 'Single3D', uptime: '3d', label: '3 Hari', price: 10000, actualSpeed : "5 Mbps",maks:1 },
+        SINGLE_7D: { name:'Paket 7 Hari Single',username: usn, profile: 'Single7D', uptime: '7d', label: '7 Hari', price: 25000, actualSpeed : "5 Mbps",maks:1  },
+        SINGLE_30D:{ name:'Paket 30 Hari Single',username: usn, profile: 'Single30D', uptime: '30d',label: '30 Hari',price: 40000, actualSpeed : "5 Mbps",maks:1 },
+    };
+
+    const unpkg = SINGLE_MAP[packageType];
+
+    const pkg ={
+        ...unpkg,
+        admin: parseInt(this.adminId)
+    }
+
+    if (!pkg) {
+        // delete this.userState[chatId];
+        return this.sendMessage(chatId, '❌ Paket tidak valid.');
+    }
+
+    const newVoucher = await generateSafeVoucher({length: 4});
+
+    await addUserToMikrotik({
+        username:newVoucher,
+        password:newVoucher,
+        profile:pkg.profile,
+        uptime:pkg.uptime,
+        service:'hotspot'
+
+    });
+    saveToJson({
+                newVoucher,
+                profile: pkg.profile,
+                duration: pkg.label,
+                price: pkg.price,
+                createdAt: new Date().toISOString()
+    });
+    await this.sendMessage(
+                this.adminId,
+                `💳 ${pkg.name} ✅\n\n`+
+                `Harga Rp. ${pkg.price}\n`+
+                `Speed : ${pkg.actualSpeed}\n`+
+                `Masa Pakai : ${pkg.label}\n`+
+                `Maks Device : ${pkg.maks}\n\n`+
+                `🎟 Kode voucher : ${newVoucher}`
+        )
+    }
+
+    async GenerateRumahan(msg, packageType){
+    const chatId = msg.chat.id;
+    const uname = msg.chat.username;
+    const {addUserToMikrotik, ProfileKosong} = require('../services/mikrotik');
+    const generateSafeVoucher = require('../services/generateSafeVoucher');
+    const saveToJson = require('../services/storage');
+
+    const RumahMap = {
+        GOLD   : { username : uname,name:'Paket Rumah Gold 30 Hari',   uptime:'30d',label:'30 Hari',price : 125000, actualSpeed:"20 Mbps", maks:14 },
+        SILVER : { username : uname,name:'Paket Rumah Silver 30 Hari', uptime:'30d',label:'30 Hari',price : 100000, actualSpeed:"15 Mbps", maks:14  },
+        BRONZE : {  username : uname, name:'Paket Rumah Bronze 30 Hari', uptime:'30d',label: '30 Hari', price : 80000, actualSpeed:"10 Mbps", maks:14  }
+    };
+
+    const paket = RumahMap[packageType];
+    if (!paket) {
+        return this.sendMessage(chatId, '❌ Paket tidak valid');
+    }
+
+    const readyProfile = await ProfileKosong(packageType);
+    if (!readyProfile.status) {
+        this.sendMessage(
+            chatId,
+            `🚫 Slot * ${packageType} * sudah penuh.\nSilakan pilih paket lain atau coba hubungi admin 🙏`
+        );
+        return this.mainMenu(chatId);
+    }
+    const pkg = {
+    ...paket,
+    profile: readyProfile.name,
+    admin : parseInt(this.adminId)
+    };
+    try {
+    const newVoucher = await generateSafeVoucher({length: 4});
+
+    await addUserToMikrotik({
+        username:newVoucher,
+        password:newVoucher,
+        profile:pkg.profile,
+        uptime:pkg.uptime,
+        service:'hotspot'
+
+    });
+    saveToJson({
+                newVoucher,
+                profile: pkg.profile,
+                duration: pkg.label,
+                price: pkg.price,
+                createdAt: new Date().toISOString()
+    });
+    await this.sendMessage(
+                this.adminId,
+                `💳 ${pkg.name} ✅\n\n`+
+                `Harga Rp. ${pkg.price}\n`+
+                `Speed : ${pkg.actualSpeed}\n`+
+                `Masa Pakai : ${pkg.label}\n`+
+                `Maks Device : ${pkg.maks}\n\n`+
+                `🎟 Kode voucher : ${newVoucher}`
+        )
+    } catch (err) {
+        console.error(err);
+        this.sendMessage(chatId, '❌ Gagal membuat Voucher, coba lagi ya.');
+    }
     }
 
     async handleCekVoucher(chatId, kode) {
@@ -499,20 +730,20 @@ class PermataBot extends TelegramBot {
             '⚠️ Terjadi kesalahan saat cek voucher, coba lagi ya.'
         );
     }
-}
+    }
 
-monitorExpiredVouchers() {
-    console.log('🕒 Voucher monitor aktif (1 menit sekali)');
+    monitorExpiredVouchers() {
+        console.log('🕒 Voucher monitor aktif (1 menit sekali)');
 
-    setInterval(async () => {
-        try {
-            const { monitorExpire } = require('../services/mikrotik');
-            await monitorExpire();
-        } catch (err) {
-            console.error('MONITOR ERROR:', err.message);
-        }
-    }, 600_000);
-}
+        setInterval(async () => {
+            try {
+                const { monitorExpire } = require('../services/mikrotik');
+                await monitorExpire();
+            } catch (err) {
+                console.error('MONITOR ERROR:', err.message);
+            }
+        }, 600_000);
+    }
 
 
 

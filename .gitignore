@@ -2,7 +2,8 @@
 Node_*
 node_modules/
 voucher.json
-
+profile.json
+lisence.json
 # Environment
 .env
 

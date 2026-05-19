@@ -52,7 +52,7 @@ async function generateSafeVoucher({
             isSafe = true;
         }
 
-        if (attempt > 20) {
+        if (attempt > 200) {
             throw new Error('❌ Gagal generate voucher aman (terlalu banyak tabrakan)');
         }
     }
